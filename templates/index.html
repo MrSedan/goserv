@@ -2,20 +2,15 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>{{ .Title}}</title>
     </head>
     <body>
-        <ul>
-            {{range .Information}}
-            <li>
-                <h1>{{ .Name}}</h1>
-                <h2>{{ .Message}}</h2>
-                <hr>
-            </li>
-            {{else}}
-            <h1>No data</h1>
-            {{end}}
-        </ul>
-        <hr>   
+        <div class="log-form">
+            <h1>Index</h1>
+            <hr>
+            <small>User: %s</small>
+            <form method="POST" action="/logout">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
     </body>
 </html>

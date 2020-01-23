@@ -1,76 +1,27 @@
 package main
 
 import (
-	"database/sql"
 	"net/http"
-	"text/template"
 
-	_ "github.com/mattn/go-sqlite3"
+	common "./common"
+
+	"github.com/gorilla/mux"
 )
 
-var database *sql.DB
-
-type info struct {
-	Name    string
-	Message string
-}
-type ViewData struct {
-	Information []info
-	Title       string
-}
+var router = mux.NewRouter()
 
 func main() {
-	db, err := sql.Open("sqlite3", "serv.db")
-	if err != nil {
-		panic(err)
-	}
-	database = db
-	defer db.Close()
+	router.HandleFunc("/", common.LoginPageHandler)
 
-	http.HandleFunc("/", handler)
-	http.HandleFunc("/create", testForm)
+	router.HandleFunc("/index", common.IndexPageHandler)
+	router.HandleFunc("/login", common.LoginHandler).Methods("POST")
 
+	router.HandleFunc("/register", common.RegisterPageHandler).Methods("GET")
+	router.HandleFunc("/register", common.RegisterHandler).Methods("POST")
+
+	router.HandleFunc("/logout", common.LogoutHandler).Methods("POST")
+
+	http.Handle("/", router)
 	http.ListenAndServe(":8000", nil)
-}
 
-//Standart Handler
-func handler(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.Query("SELECT * FROM test")
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-	var infos []info
-	for rows.Next() {
-		v := info{}
-		err := rows.Scan(&v.Name, &v.Message)
-		if err != nil {
-			panic(err)
-		}
-		infos = append(infos, v)
-	}
-	tmpl, _ := template.ParseFiles("templates/index.html")
-	data := ViewData{
-		Title:       "Test",
-		Information: infos,
-	}
-	tmpl.Execute(w, data)
-}
-
-func testForm(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		err := r.ParseForm()
-		if err != nil {
-			panic(err)
-		}
-		name := r.FormValue("name")
-		message := r.FormValue("message")
-		_, err = database.Exec("INSERT INTO test (name, message) VALUES (?, ?)", name, message)
-		if err != nil {
-			panic(err)
-		}
-		http.Redirect(w, r, "/", 301)
-	} else {
-		http.ServeFile(w, r, "templates/create.html")
-	}
 }
