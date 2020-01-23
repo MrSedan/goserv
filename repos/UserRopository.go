@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
@@ -9,38 +10,37 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var db *sql.DB
+var (
+	ctx context.Context
+	db  *sql.DB
+)
 
 func UserIsValid(uName, pwd string) bool {
 	var err error
-	db, err = sql.Open("sqlite3", "../serv.db")
+	db, err := sql.Open("sqlite3", "./serv.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	quer, err := db.Query("SELECT passHash from users WHERE uName=\"?\"", uName)
+	var passHash string
+	row := db.QueryRow("SELECT passHash from users WHERE uName=$1", uName)
+	err = row.Scan(&passHash)
+	if err == sql.ErrNoRows {
+		return false
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer quer.Close()
-	for quer.Next() {
-		var passHash string
-		err = quer.Scan(&passHash)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(pwd))
-		if err != nil {
-			return false
-		}
-		return true
+	err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(pwd))
+	if err != nil {
+		return false
 	}
-	return false
+	return true
 }
 
 func MaybeUser(uName string) bool {
 	var err error
-	db, err = sql.Open("sqlite3", "../serv.db")
+	db, err := sql.Open("sqlite3", "./serv.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func MaybeUser(uName string) bool {
 
 func Register(uName, email, pwd string) {
 	var err error
-	db, err = sql.Open("sqlite3", "../serv,db")
+	db, err := sql.Open("sqlite3", "./serv.db")
 	if err != nil {
 		log.Fatal(err)
 	}

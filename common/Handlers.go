@@ -53,8 +53,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	_email = !helpers.IsEmpty(email)
 	_pwd = !helpers.IsEmpty(pwd)
 	_confirmPwd = !helpers.IsEmpty(confirmPwd)
-	if !_uName && !_confirmPwd && !_email && !_pwd && !_confirmPwd && pwd == confirmPwd {
-		if repos.MaybeUser(uName) {
+	if _uName && _confirmPwd && _email && _pwd && _confirmPwd && pwd == confirmPwd {
+		if !repos.MaybeUser(uName) {
 			redirectTarget = "/index"
 			repos.Register(uName, email, pwd)
 		} else {
