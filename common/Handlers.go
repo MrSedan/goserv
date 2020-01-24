@@ -2,12 +2,18 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 
 	helpers "../helpers"
 	repos "../repos"
 	"github.com/gorilla/securecookie"
 )
+
+type ViewData struct {
+	Name string
+}
 
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
@@ -67,10 +73,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func IndexPageHandler(w http.ResponseWriter, r *http.Request) {
-	userName := GetUserName(r)
-	if !helpers.IsEmpty(userName) {
-		var indexBody, _ = helpers.LoadFile("templates/index.html")
-		fmt.Fprintf(w, indexBody, userName)
+	data := ViewData{}
+	data.Name = GetUserName(r)
+	if !helpers.IsEmpty(data.Name) {
+		tmpl, err := template.ParseFiles("templates/index.html", "templates/base.html")
+		if err != nil {
+			log.Fatal(err)
+		}
+		tmpl.Execute(w, data)
+
 	} else {
 		http.Redirect(w, r, "/", 302)
 	}

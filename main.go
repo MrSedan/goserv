@@ -6,9 +6,20 @@ import (
 	common "./common"
 
 	"github.com/gorilla/mux"
+	"github.com/thedevsaddam/renderer"
 )
 
-var router = mux.NewRouter()
+var (
+	router = mux.NewRouter()
+	rnd    *renderer.Render
+)
+
+func init() {
+	opts := renderer.Options{
+		ParseGlobPattern: "./templates/*.html",
+	}
+	rnd = renderer.New(opts)
+}
 
 func main() {
 	router.HandleFunc("/", common.LoginPageHandler)

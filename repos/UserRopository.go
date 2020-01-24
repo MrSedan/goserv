@@ -1,19 +1,17 @@
 package repos
 
 import (
-	"context"
 	"database/sql"
 	"log"
 
-	"golang.org/x/crypto/bcrypt"
+	helpers "../helpers"
 
 	//SQL-Driver
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
-	ctx context.Context
-	db  *sql.DB
+	db *sql.DB
 )
 
 //UserIsValid Checking User in DataBase on Login
@@ -33,11 +31,7 @@ func UserIsValid(uName, pwd string) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(pwd))
-	if err != nil {
-		return false
-	}
-	return true
+	return helpers.ValidatePassword(pwd, passHash)
 }
 
 //MaybeUser Checking for user in database
@@ -72,9 +66,9 @@ func Register(uName, email, pwd string) {
 
 //HashAndSalt generates the Password Hash
 func HashAndSalt(pwd string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
+	hash, err := helpers.CreateHash(pwd)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return string(hash)
+	return hash
 }
